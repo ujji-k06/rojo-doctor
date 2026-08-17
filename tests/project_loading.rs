@@ -18,7 +18,11 @@ fn discovers_and_loads_default_project_json_from_directory() {
         loaded.path.file_name().and_then(|name| name.to_str()),
         Some("default.project.json")
     );
-    assert!(loaded.project.tree.children.contains_key("ReplicatedStorage"));
+    assert!(loaded
+        .project
+        .tree
+        .children
+        .contains_key("ReplicatedStorage"));
 }
 
 #[test]

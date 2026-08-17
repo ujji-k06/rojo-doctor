@@ -254,10 +254,9 @@ mod tests {
 
     #[test]
     fn optional_path_mapping_matches_rojo_shape() {
-        let node: ProjectNode = serde_json::from_str(
-            r#"{ "$path": { "optional": "src/generated" } }"#,
-        )
-        .expect("node should deserialize");
+        let node: ProjectNode =
+            serde_json::from_str(r#"{ "$path": { "optional": "src/generated" } }"#)
+                .expect("node should deserialize");
 
         let mapping = node.path.expect("path should exist");
         assert_eq!(mapping.path(), Path::new("src/generated"));
