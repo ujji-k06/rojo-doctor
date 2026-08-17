@@ -2,12 +2,12 @@
 
 `rojo-doctor` is a Rust CLI for finding structural and configuration problems in [Rojo](https://rojo.space/) projects and explaining how to fix them.
 
-The project is being built incrementally. The current implementation is the first v0.1 slice: it can locate and load a Rojo project, including `default.project.json` and `default.project.jsonc`, but it does **not** run structural checks yet.
+The project is being built incrementally. The current v0.1 slice discovers Rojo project files, loads JSON/JSONC project trees, recursively resolves `$path` mappings, and reports required mapped paths that do not exist.
 
 ## Install from source
 
 ```sh
-git clone <your-repository-url>
+git clone https://github.com/ujji-k06/rojo-doctor.git
 cd rojo-doctor
 cargo install --path .
 ```
@@ -27,13 +27,23 @@ rojo-doctor check path/to/default.project.json
 rojo-doctor check path/to/project-directory
 ```
 
-Current output:
+Example diagnostic:
 
 ```text
 Checking default.project.json...
 
-✓ project loaded
+✓ 1 mapped path resolved
+
+warning[missing-path]
+  src/server/Inventory
+  referenced by ServerScriptService.Inventory but does not exist, so Rojo cannot resolve this mapping
+
+  help: create the mapped path or update the `$path` entry
+
+1 warning, 0 errors
 ```
+
+Missing optional `$path` mappings are allowed and do not produce a diagnostic.
 
 ## v0.1 goals
 
@@ -46,17 +56,19 @@ Checking default.project.json...
 
 ## Current exit codes
 
-- `0`: the command completed successfully;
-- `2`: the project could not be discovered, read, or parsed (Clap also uses `2` for invalid CLI usage).
+- `0`: checks completed with no diagnostics;
+- `1`: checks completed and produced one or more diagnostics, including warnings;
+- `2`: the project/check could not run because of invalid CLI usage, project loading, parsing, or filesystem inspection errors.
 
-A future check-result exit code will be introduced when the first diagnostic rule lands.
+The warning-to-exit-code policy is intentionally simple for v0.1. A future configuration option can distinguish informational warnings from CI-failing diagnostics when more rules exist.
 
 ## Current limitations
 
-- no `$path` existence validation yet;
-- no diagnostic/rule abstraction yet;
-- this is not a complete validator for every Rojo project field;
-- no graph, Luau `require()` analysis, assets checks, JSON diagnostics, CI, or release packaging yet;
+- only missing required `$path` mappings are checked;
+- the project model intentionally covers only the Rojo fields needed by current checks;
+- no unreachable Luau detection or `require()` dependency analysis yet;
+- no graph, asset-ID checks, configurable module-size warnings, or JSON diagnostics yet;
+- no CI or release packaging yet;
 - license and minimum supported Rust version are not chosen yet.
 
-The loader intentionally understands only the project fields needed for analysis and ignores unrelated reserved Rojo node metadata. That keeps the model small without misclassifying `$properties` or `$attributes` as child instances.
+The loader intentionally ignores unrelated reserved Rojo node metadata instead of misclassifying fields such as `$properties` or `$attributes` as child instances. Filesystem paths are resolved relative to the directory containing the project file; absolute mappings remain absolute.
