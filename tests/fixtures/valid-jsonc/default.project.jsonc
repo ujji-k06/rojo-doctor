@@ -1,0 +1,12 @@
+{
+  // Rojo supports comments and trailing commas in project JSONC files.
+  "tree": {
+    "$className": "DataModel",
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$path": { "optional": "src/client" },
+      },
+    },
+  },
+}
