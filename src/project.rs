@@ -225,7 +225,34 @@ pub fn discover_project_file(path: &Path) -> Result<PathBuf, ProjectError> {
     })
 }
 
-fn is_project_file(path: &Path) -> bool {
+pub(crate) fn discover_project_files(dir: &Path) -> Result<Vec<PathBuf>, ProjectError> {
+    let entries = fs::read_dir(dir).map_err(|source| ProjectError::InspectPath {
+        path: dir.to_path_buf(),
+        source,
+    })?;
+    let mut files = Vec::new();
+    for entry in entries {
+        let entry = entry.map_err(|source| ProjectError::InspectPath {
+            path: dir.to_path_buf(),
+            source,
+        })?;
+        if entry
+            .file_type()
+            .map_err(|source| ProjectError::InspectPath {
+                path: entry.path(),
+                source,
+            })?
+            .is_file()
+            && is_project_file(&entry.path())
+        {
+            files.push(entry.path());
+        }
+    }
+    files.sort();
+    Ok(files)
+}
+
+pub(crate) fn is_project_file(path: &Path) -> bool {
     path.file_name()
         .and_then(|name| name.to_str())
         .is_some_and(|name| name.ends_with(".project.json") || name.ends_with(".project.jsonc"))

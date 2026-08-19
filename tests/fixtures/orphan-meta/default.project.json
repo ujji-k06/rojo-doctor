@@ -1,0 +1,7 @@
+{
+  "name": "OrphanMeta",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": { "$path": "src" }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "ClassOnFile",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Health": {
+        "$className": "Folder",
+        "$path": "src/health.lua"
+      }
+    }
+  }
+}

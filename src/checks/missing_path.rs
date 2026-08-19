@@ -23,7 +23,18 @@ pub fn run(project: &LoadedProject) -> Result<MissingPathReport, CheckError> {
                     "referenced by {} but does not exist, so Rojo cannot resolve this mapping",
                     mapping.instance_path
                 ),
-                "create the mapped path or update the `$path` entry",
+                if matches!(
+                    mapping
+                        .configured_path
+                        .file_name()
+                        .and_then(|name| name.to_str()),
+                    Some("Packages" | "DevPackages")
+                ) && project.root_dir().join("wally.toml").is_file()
+                {
+                    "run `wally install` to create this path"
+                } else {
+                    "create the mapped path or update the `$path` entry"
+                },
             )),
             Err(source) => {
                 return Err(CheckError::InspectMappedPath {

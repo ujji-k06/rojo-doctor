@@ -4,7 +4,9 @@ use std::{
 };
 
 use rojo_doctor::{
-    checks::missing_path, diagnostic::Severity, inspection::collect_mapped_paths,
+    checks::missing_path,
+    diagnostic::Severity,
+    inspection::{collect_mapped_paths, instance_name_from_entry},
     project::load_project,
 };
 
@@ -119,4 +121,88 @@ fn json_format_prints_parseable_report() {
     assert!(stdout.contains("\"code\": \"missing-path\""));
     assert!(stdout.contains("\"warnings\": 1"));
     assert!(stdout.contains("\"errors\": 0"));
+}
+
+#[test]
+fn missing_class_ignores_inferred_services_but_flags_plain_nodes() {
+    let loaded = load_project(Some(&fixture("missing-class"))).expect("fixture should load");
+    let report = rojo_doctor::checks::run_all(&loaded).expect("check should complete");
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "missing-class" && diagnostic.subject == "ReplicatedStorage.Orphan"
+    }));
+    assert_eq!(
+        report
+            .diagnostics
+            .iter()
+            .filter(|diagnostic| diagnostic.code == "missing-class")
+            .count(),
+        1
+    );
+}
+
+#[test]
+fn class_on_non_folder_is_an_error() {
+    let loaded = load_project(Some(&fixture("class-on-file"))).expect("fixture should load");
+    let report = rojo_doctor::checks::run_all(&loaded).expect("check should complete");
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "class-on-non-folder" && diagnostic.severity == Severity::Error
+    }));
+}
+
+#[test]
+fn child_collision_is_an_error() {
+    let loaded = load_project(Some(&fixture("child-collision"))).expect("fixture should load");
+    let report = rojo_doctor::checks::run_all(&loaded).expect("check should complete");
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "child-collision" && diagnostic.message.contains("child `Util`")
+    }));
+}
+
+#[test]
+fn ambiguous_init_is_a_warning() {
+    let loaded = load_project(Some(&fixture("ambiguous-init"))).expect("fixture should load");
+    let report = rojo_doctor::checks::run_all(&loaded).expect("check should complete");
+
+    assert!(report.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "ambiguous-init" && diagnostic.severity == Severity::Warning
+    }));
+}
+
+#[test]
+fn orphan_meta_ignores_init_and_matched_siblings() {
+    let loaded = load_project(Some(&fixture("orphan-meta"))).expect("fixture should load");
+    let report = rojo_doctor::checks::run_all(&loaded).expect("check should complete");
+
+    let orphan = report
+        .diagnostics
+        .iter()
+        .filter(|diagnostic| diagnostic.code == "orphan-meta")
+        .collect::<Vec<_>>();
+    assert_eq!(orphan.len(), 1);
+    assert!(orphan[0].subject.ends_with("Ghost.meta.json"));
+}
+
+#[test]
+fn check_all_runs_every_project_file() {
+    let output = Command::new(env!("CARGO_BIN_EXE_rojo-doctor"))
+        .args(["check", "--all"])
+        .arg(fixture("multi-project"))
+        .output()
+        .expect("rojo-doctor should run");
+
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8(output.stdout).expect("stdout should be UTF-8");
+    assert!(stdout.contains("default.project.json"));
+    assert!(stdout.contains("tests.project.json"));
+}
+
+#[test]
+fn instance_name_from_entry_handles_rojo_suffixes() {
+    assert_eq!(instance_name_from_entry("Foo.server.lua"), Some("Foo"));
+    assert_eq!(instance_name_from_entry("init.lua"), None);
+    assert_eq!(instance_name_from_entry("Foo.meta.json"), None);
+    assert_eq!(instance_name_from_entry("Bar.luau"), Some("Bar"));
 }

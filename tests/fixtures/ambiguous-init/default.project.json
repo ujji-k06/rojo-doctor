@@ -1,0 +1,7 @@
+{
+  "name": "AmbiguousInit",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": { "$path": "src" }
+  }
+}

@@ -35,4 +35,8 @@ pub struct CheckArgs {
     /// `text` for rustc-style diagnostics, `json` for CI.
     #[arg(long, value_enum, default_value_t = OutputFormat::Text)]
     pub format: OutputFormat,
+
+    /// Check every `.project.json` / `.project.jsonc` in the directory.
+    #[arg(long)]
+    pub all: bool,
 }
