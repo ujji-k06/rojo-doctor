@@ -1,9 +1,11 @@
 [package]
 name = "rojo-doctor"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 description = "Actionable structural diagnostics for Rojo projects"
 readme = "README.md"
+license = "MIT"
+repository = "https://github.com/ujji-k06/rojo-doctor"
 keywords = ["roblox", "rojo", "cli", "developer-tools"]
 categories = ["command-line-utilities", "development-tools"]
 publish = false

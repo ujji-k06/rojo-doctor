@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use clap::{Args, Parser, Subcommand};
+use clap::{Args, Parser, Subcommand, ValueEnum};
 
 #[derive(Debug, Parser)]
 #[command(
@@ -19,9 +19,20 @@ pub enum Command {
     Check(CheckArgs),
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, ValueEnum)]
+pub enum OutputFormat {
+    #[default]
+    Text,
+    Json,
+}
+
 #[derive(Debug, Args)]
 pub struct CheckArgs {
     /// Project file, or a directory containing default.project.json(.c).
     #[arg(value_name = "PROJECT")]
     pub project: Option<PathBuf>,
+
+    /// `text` for rustc-style diagnostics, `json` for CI.
+    #[arg(long, value_enum, default_value_t = OutputFormat::Text)]
+    pub format: OutputFormat,
 }
