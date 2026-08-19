@@ -1,2 +1,36 @@
 /target
 .DS_Store
+# --- start:ai ---
+.cursor/
+.cursorignore
+.cursorrules
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.claude/
+.cline/
+.clinerules
+.continue/
+.windsurf/
+.roo/
+.roorules
+.aider/
+.aider.conf.yml
+.aiderignore
+.codex/
+.gemini/
+.agent/
+.github/copilot-instructions.md
+.github/instructions/
+.github/prompts/
+.github/agents/
+.github/chatmodes/
+.vscode/copilot*
+*.canvas.tsx
+*.canvas.data.json
+canvases/
+agent-transcripts/
+# --- end:start:ai ---
+.env
+.env.*
+!.env.example
