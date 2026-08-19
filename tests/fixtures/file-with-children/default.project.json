@@ -1,0 +1,14 @@
+{
+  "name": "FileWithChildren",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Health": {
+        "$path": "src/health.lua",
+        "Nope": {
+          "$className": "Folder"
+        }
+      }
+    }
+  }
+}

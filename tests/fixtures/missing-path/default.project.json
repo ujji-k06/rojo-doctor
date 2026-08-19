@@ -1,0 +1,22 @@
+{
+  "name": "MissingPathFixture",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$path": "src/shared"
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "Inventory": {
+        "$path": "src/server/Inventory"
+      }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "$path": {
+          "optional": "src/generated"
+        }
+      }
+    }
+  }
+}

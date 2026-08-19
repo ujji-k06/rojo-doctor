@@ -1,5 +1,6 @@
 {
   // Rojo supports comments and trailing commas in project JSONC files.
+  "name": "FixtureGameJsonc",
   "tree": {
     "$className": "DataModel",
     "StarterPlayer": {
