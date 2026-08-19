@@ -1,0 +1,29 @@
+name: rojo-doctor
+description: Catch broken Rojo projects before Studio does
+branding:
+  icon: search
+  color: orange
+inputs:
+  project:
+    description: Project file, or a directory containing .project.json files
+    required: false
+    default: "."
+  all:
+    description: Check every .project.json / .project.jsonc in the directory
+    required: false
+    default: "true"
+runs:
+  using: composite
+  steps:
+    - uses: dtolnay/rust-toolchain@stable
+    - name: Install rojo-doctor
+      shell: bash
+      run: cargo install --path "$GITHUB_ACTION_PATH" --locked --force
+    - name: Run rojo-doctor
+      shell: bash
+      run: |
+        if [ "${{ inputs.all }}" = "true" ]; then
+          rojo-doctor check --all "${{ inputs.project }}"
+        else
+          rojo-doctor check "${{ inputs.project }}"
+        fi
