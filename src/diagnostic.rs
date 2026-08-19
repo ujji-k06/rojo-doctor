@@ -42,6 +42,21 @@ impl Diagnostic {
             help: Some(help.into()),
         }
     }
+
+    pub fn error(
+        code: impl Into<String>,
+        subject: impl Into<String>,
+        message: impl Into<String>,
+        help: impl Into<String>,
+    ) -> Self {
+        Self {
+            severity: Severity::Error,
+            code: code.into(),
+            subject: subject.into(),
+            message: message.into(),
+            help: Some(help.into()),
+        }
+    }
 }
 
 impl fmt::Display for Diagnostic {

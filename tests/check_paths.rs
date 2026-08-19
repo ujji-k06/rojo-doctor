@@ -81,3 +81,42 @@ fn check_command_returns_zero_when_all_required_paths_exist() {
     assert!(stdout.contains("2 mapped paths resolved"));
     assert!(stdout.contains("0 warnings, 0 errors"));
 }
+
+#[test]
+fn file_with_children_is_an_error() {
+    let loaded = load_project(Some(&fixture("file-with-children"))).expect("fixture should load");
+    let report = rojo_doctor::checks::run_all(&loaded).expect("check should complete");
+
+    assert!(report
+        .diagnostics
+        .iter()
+        .any(|diagnostic| diagnostic.code == "file-with-children"
+            && diagnostic.severity == Severity::Error));
+}
+
+#[test]
+fn missing_name_is_a_warning() {
+    let loaded = load_project(Some(&fixture("missing-name"))).expect("fixture should load");
+    let report = rojo_doctor::checks::run_all(&loaded).expect("check should complete");
+
+    assert!(report
+        .diagnostics
+        .iter()
+        .any(|diagnostic| diagnostic.code == "missing-name"));
+}
+
+#[test]
+fn json_format_prints_parseable_report() {
+    let output = Command::new(env!("CARGO_BIN_EXE_rojo-doctor"))
+        .args(["check", "--format", "json"])
+        .arg(fixture("missing-path"))
+        .output()
+        .expect("rojo-doctor should run");
+
+    assert_eq!(output.status.code(), Some(1));
+
+    let stdout = String::from_utf8(output.stdout).expect("stdout should be UTF-8");
+    assert!(stdout.contains("\"code\": \"missing-path\""));
+    assert!(stdout.contains("\"warnings\": 1"));
+    assert!(stdout.contains("\"errors\": 0"));
+}

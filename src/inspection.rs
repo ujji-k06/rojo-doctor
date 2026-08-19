@@ -40,6 +40,7 @@ pub struct MappedPath {
     pub configured_path: PathBuf,
     pub resolved_path: PathBuf,
     pub optional: bool,
+    pub has_children: bool,
 }
 
 pub fn collect_mapped_paths(project: &LoadedProject) -> Vec<MappedPath> {
@@ -75,6 +76,7 @@ fn collect_node_mappings(
             configured_path,
             resolved_path,
             optional: mapping.is_optional(),
+            has_children: !node.children.is_empty(),
         });
     }
 
