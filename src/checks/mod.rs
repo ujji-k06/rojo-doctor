@@ -6,6 +6,7 @@ pub mod missing_class;
 pub mod missing_name;
 pub mod missing_path;
 pub mod orphan_meta;
+pub mod script_context;
 
 use std::path::PathBuf;
 
@@ -39,9 +40,14 @@ pub fn run_all(project: &LoadedProject) -> Result<Report, CheckError> {
     diagnostics.extend(child_collision::run(project)?);
     diagnostics.extend(ambiguous_init::run(project)?);
     diagnostics.extend(orphan_meta::run(project)?);
+    diagnostics.extend(script_context::run(project)?);
 
     Ok(Report {
         diagnostics,
         resolved_paths: missing.resolved_paths,
     })
+}
+
+pub fn fix_all(project: &LoadedProject) -> Result<usize, CheckError> {
+    orphan_meta::fix(project)
 }

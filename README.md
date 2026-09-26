@@ -10,17 +10,30 @@ Checking default.project.json...
 ✓ 4 mapped paths resolved
 
 warning[missing-path]
-  Packages
+  pesde_packages
   referenced by ReplicatedStorage.Packages but does not exist, so Rojo cannot resolve this mapping
 
-  help: run `wally install` to create this path
+  help: run `pesde install` to create this path
 
 1 warning, 0 errors
 ```
 
-One binary. rustc-style diagnostics. Exit codes you can put in CI.
+Available both as a standalone **Rust CLI binary** and a native **pesde / Lune package**.
 
 ## Install
+
+### via pesde / Lune (Recommended for Roblox Devs)
+
+```sh
+pesde add -D ujji/rojo_doctor
+```
+
+Or run directly with Lune:
+```sh
+lune run bin/rojo-doctor.luau check
+```
+
+### via Cargo
 
 ```sh
 cargo install rojo-doctor --git https://github.com/ujji-k06/rojo-doctor --locked
@@ -33,9 +46,12 @@ rojo-doctor check
 rojo-doctor check path/to/default.project.json
 rojo-doctor check --all
 rojo-doctor check --format json
+rojo-doctor check --fix
 ```
 
-`--all` checks every `.project.json` / `.project.jsonc` in the directory, including `tests.project.json`.
+- `--all` checks every `.project.json` / `.project.jsonc` in the directory, including `tests.project.json`.
+- `--format json` outputs structured JSON for CI and IDE tooling.
+- `--fix` automatically resolves safe issues (e.g. cleans up orphaned `*.meta.json` files).
 
 | Exit | Meaning |
 |------|---------|
@@ -46,10 +62,10 @@ rojo-doctor check --format json
 ## GitHub Actions
 
 ```yaml
-- uses: ujji-k06/rojo-doctor@v0.3.0
+- uses: ujji-k06/rojo-doctor@v0.4.0
 ```
 
-Runs `rojo-doctor check --all` on the repo root. Run `wally install` first if the project maps `Packages` or `DevPackages`.
+Runs `rojo-doctor check --all` on the repo root. Run `pesde install` or `wally install` first if the project maps packages.
 
 ## What it checks
 
@@ -63,15 +79,21 @@ Runs `rojo-doctor check --all` on the repo root. Run `wally install` first if th
 | `child-collision` | error | project child name already exists inside the mapped directory |
 | `ambiguous-init` | warning | directory has more than one `init` script |
 | `orphan-meta` | warning | `*.meta.json` has no matching sibling instance |
+| `script-context` | warning | client script placed in server container or server script in client container |
 
-Optional `$path` mappings (`{ "optional": "..." }`) are allowed to be missing. If `Packages` or `DevPackages` is missing and `wally.toml` is present, the help text is `wally install`.
+- **Package Manager Hints**: If `pesde_packages` or `Packages` is missing and `pesde.toml` is present, the help text suggests `pesde install`. If `wally.toml` is present, it suggests `wally install`.
+- **Optional Paths**: Optional `$path` mappings (`{ "optional": "..." }`) are allowed to be missing.
+- **JSONC Support**: Comments and trailing commas in `.project.jsonc` are supported. Reserved `$` fields such as `$properties` are ignored instead of being treated as instances.
 
-JSONC project files work. Reserved `$` fields such as `$properties` are ignored instead of being treated as instances.
-
-## Test
+## Testing
 
 ```sh
+# Rust test suite
 cargo test
+
+# Lune / pesde test suite
+pesde run test
+# or: lune run tests/lune_test.luau
 ```
 
 ## Why this exists

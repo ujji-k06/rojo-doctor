@@ -206,3 +206,61 @@ fn instance_name_from_entry_handles_rojo_suffixes() {
     assert_eq!(instance_name_from_entry("Foo.meta.json"), None);
     assert_eq!(instance_name_from_entry("Bar.luau"), Some("Bar"));
 }
+#[test]
+fn pesde_packages_missing_path_suggests_pesde_install() {
+    let loaded = load_project(Some(&fixture("pesde-packages"))).expect("fixture should load");
+    let report = rojo_doctor::checks::run_all(&loaded).expect("check should complete");
+
+    let missing = report
+        .diagnostics
+        .iter()
+        .find(|d| d.code == "missing-path")
+        .expect("should flag missing-path");
+
+    assert!(missing.help.as_deref().unwrap_or("").contains("pesde install"));
+}
+
+#[test]
+fn script_context_warns_on_client_script_in_serverscriptservice() {
+    let loaded = load_project(Some(&fixture("script-context"))).expect("fixture should load");
+    let report = rojo_doctor::checks::run_all(&loaded).expect("check should complete");
+
+    let context_diag = report
+        .diagnostics
+        .iter()
+        .find(|d| d.code == "script-context")
+        .expect("should flag script-context");
+
+    assert_eq!(context_diag.severity, Severity::Warning);
+    assert!(context_diag.subject.ends_with("Bad.client.luau"));
+    assert!(context_diag.message.contains("ServerScriptService"));
+}
+
+#[test]
+fn fix_flag_removes_orphaned_metadata_files() {
+    let temp_dir = std::env::temp_dir().join("rojo-doctor-test-fix");
+    let _ = std::fs::remove_dir_all(&temp_dir);
+    std::fs::create_dir_all(temp_dir.join("src")).expect("create temp dir");
+
+    std::fs::write(
+        temp_dir.join("default.project.json"),
+        r#"{"name": "Temp", "tree": {"$className": "DataModel", "ReplicatedStorage": {"$path": "src"}}}"#,
+    ).expect("write project");
+
+    std::fs::write(temp_dir.join("src/Ghost.meta.json"), "{}").expect("write orphan");
+    std::fs::write(temp_dir.join("src/Real.luau"), "return {}").expect("write real");
+    std::fs::write(temp_dir.join("src/Real.meta.json"), "{}").expect("write real meta");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_rojo-doctor"))
+        .args(["check", "--fix"])
+        .arg(&temp_dir)
+        .output()
+        .expect("run rojo-doctor --fix");
+
+    assert_eq!(output.status.code(), Some(0));
+    assert!(!temp_dir.join("src/Ghost.meta.json").exists());
+    assert!(temp_dir.join("src/Real.meta.json").exists());
+    assert!(temp_dir.join("src/Real.luau").exists());
+
+    let _ = std::fs::remove_dir_all(&temp_dir);
+}

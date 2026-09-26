@@ -90,3 +90,19 @@ fn relative_subject(project: &LoadedProject, path: &Path) -> String {
         |path| path.display().to_string(),
     )
 }
+
+pub fn fix(project: &LoadedProject) -> Result<usize, CheckError> {
+    let diagnostics = run(project)?;
+    let mut fixed = 0;
+    for diag in diagnostics {
+        if diag.code == "orphan-meta" {
+            let path = project.root_dir().join(&diag.subject);
+            if path.is_file() {
+                if fs::remove_file(&path).is_ok() {
+                    fixed += 1;
+                }
+            }
+        }
+    }
+    Ok(fixed)
+}

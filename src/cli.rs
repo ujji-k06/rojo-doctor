@@ -39,4 +39,8 @@ pub struct CheckArgs {
     /// Check every `.project.json` / `.project.jsonc` in the directory.
     #[arg(long)]
     pub all: bool,
+
+    /// Automatically fix safe issues (e.g. remove orphaned .meta.json files).
+    #[arg(long)]
+    pub fix: bool,
 }

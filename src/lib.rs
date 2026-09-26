@@ -39,6 +39,21 @@ fn run_check(args: CheckArgs) -> ExitCode {
         }
     };
 
+    if args.fix {
+        match checks::fix_all(&loaded) {
+            Ok(count) if count > 0 && args.format == OutputFormat::Text => {
+                println!("fixed: removed {count} orphaned metadata file{}", plural_suffix(count));
+                println!();
+            }
+            Ok(_) => {}
+            Err(error) => {
+                eprintln!("error[filesystem]");
+                eprintln!("  {error}");
+                return ExitCode::from(2);
+            }
+        }
+    }
+
     let report = match checks::run_all(&loaded) {
         Ok(report) => report,
         Err(error) => {
@@ -94,14 +109,30 @@ fn run_check_all(args: CheckArgs) -> ExitCode {
     let mut reports = Vec::new();
     for path in paths {
         match project::load_project(Some(&path)) {
-            Ok(loaded) => match checks::run_all(&loaded) {
-                Ok(report) => reports.push(make_json_report(&loaded, &report)),
-                Err(error) => {
-                    eprintln!("error[filesystem]");
-                    eprintln!("  {error}");
-                    return ExitCode::from(2);
+            Ok(loaded) => {
+                if args.fix {
+                    match checks::fix_all(&loaded) {
+                        Ok(count) if count > 0 && args.format == OutputFormat::Text => {
+                            println!("fixed: removed {count} orphaned metadata file{}", plural_suffix(count));
+                            println!();
+                        }
+                        Ok(_) => {}
+                        Err(error) => {
+                            eprintln!("error[filesystem]");
+                            eprintln!("  {error}");
+                            return ExitCode::from(2);
+                        }
+                    }
                 }
-            },
+                match checks::run_all(&loaded) {
+                    Ok(report) => reports.push(make_json_report(&loaded, &report)),
+                    Err(error) => {
+                        eprintln!("error[filesystem]");
+                        eprintln!("  {error}");
+                        return ExitCode::from(2);
+                    }
+                }
+            }
             Err(error) => {
                 eprintln!("error[project-load]");
                 eprintln!("  {error}");

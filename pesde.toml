@@ -1,0 +1,16 @@
+name = "ujji/rojo_doctor"
+version = "0.4.0"
+description = "Actionable structural diagnostics for Rojo projects"
+license = "MIT"
+authors = ["ujji"]
+
+[target]
+environment = "lune"
+lib = "luau/rojo_doctor.luau"
+bin = "bin/rojo-doctor.luau"
+
+[indices]
+default = "https://github.com/pesde-pkg/index"
+
+[scripts]
+test = "tests/lune_test.luau"

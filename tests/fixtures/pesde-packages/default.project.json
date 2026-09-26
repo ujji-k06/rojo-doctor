@@ -1,0 +1,11 @@
+{
+  "name": "PesdeFixture",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Packages": {
+        "$path": "pesde_packages"
+      }
+    }
+  }
+}

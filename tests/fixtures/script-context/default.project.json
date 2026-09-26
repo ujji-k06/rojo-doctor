@@ -1,0 +1,9 @@
+{
+  "name": "ScriptContextFixture",
+  "tree": {
+    "$className": "DataModel",
+    "ServerScriptService": {
+      "$path": "src/server"
+    }
+  }
+}
