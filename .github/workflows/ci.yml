@@ -5,7 +5,8 @@ on:
   pull_request:
 
 jobs:
-  test:
+  test-rust:
+    name: Rust Checks & Unit Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,3 +15,36 @@ jobs:
           components: rustfmt
       - run: cargo fmt --check
       - run: cargo test
+
+  test-action:
+    name: Action Self-Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run action on valid fixture
+        uses: ./
+        with:
+          project: tests/fixtures/valid-json
+
+  test-lune-parity:
+    name: Lune Engine & Cross-Runtime Parity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install Lune
+        run: |
+          mkdir -p "$HOME/.lune-bin"
+          curl -fsSL https://github.com/lune-org/lune/releases/download/v0.10.5/lune-0.10.5-linux-x86_64.zip -o lune.zip
+          unzip -q lune.zip -d "$HOME/.lune-bin"
+          chmod +x "$HOME/.lune-bin/lune"
+          echo "$HOME/.lune-bin" >> "$GITHUB_PATH"
+      - name: Run Lune Test Suite
+        run: |
+          export PATH="$HOME/.lune-bin:$PATH"
+          lune --version
+          lune run tests/lune_test.luau
+      - name: Verify 100% Cross-Runtime Parity
+        run: |
+          export PATH="$HOME/.lune-bin:$PATH"
+          ./tests/parity.sh

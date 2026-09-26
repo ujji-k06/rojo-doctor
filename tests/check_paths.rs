@@ -217,7 +217,11 @@ fn pesde_packages_missing_path_suggests_pesde_install() {
         .find(|d| d.code == "missing-path")
         .expect("should flag missing-path");
 
-    assert!(missing.help.as_deref().unwrap_or("").contains("pesde install"));
+    assert!(missing
+        .help
+        .as_deref()
+        .unwrap_or("")
+        .contains("pesde install"));
 }
 
 #[test]

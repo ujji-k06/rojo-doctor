@@ -1,9 +1,7 @@
 use std::{fs, path::Path};
 
 use crate::{
-    checks::CheckError,
-    diagnostic::Diagnostic,
-    inspection::collect_mapped_paths,
+    checks::CheckError, diagnostic::Diagnostic, inspection::collect_mapped_paths,
     project::LoadedProject,
 };
 
@@ -92,7 +90,9 @@ fn check_file(
             diagnostics.push(Diagnostic::warning(
                 "script-context",
                 relative_subject(project, path),
-                format!("server script placed under `{instance_name}` will not execute on the client"),
+                format!(
+                    "server script placed under `{instance_name}` will not execute on the client"
+                ),
                 "move this script to ServerScriptService or change to a client script",
             ));
         }
@@ -118,10 +118,12 @@ fn walk(
             source,
         })?;
         let path = entry.path();
-        let file_type = entry.file_type().map_err(|source| CheckError::InspectMappedPath {
-            path: path.clone(),
-            source,
-        })?;
+        let file_type = entry
+            .file_type()
+            .map_err(|source| CheckError::InspectMappedPath {
+                path: path.clone(),
+                source,
+            })?;
 
         if file_type.is_dir() {
             if path.join("default.project.json").is_file()

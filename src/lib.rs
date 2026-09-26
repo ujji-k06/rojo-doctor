@@ -42,7 +42,10 @@ fn run_check(args: CheckArgs) -> ExitCode {
     if args.fix {
         match checks::fix_all(&loaded) {
             Ok(count) if count > 0 && args.format == OutputFormat::Text => {
-                println!("fixed: removed {count} orphaned metadata file{}", plural_suffix(count));
+                println!(
+                    "fixed: removed {count} orphaned metadata file{}",
+                    plural_suffix(count)
+                );
                 println!();
             }
             Ok(_) => {}
@@ -113,7 +116,10 @@ fn run_check_all(args: CheckArgs) -> ExitCode {
                 if args.fix {
                     match checks::fix_all(&loaded) {
                         Ok(count) if count > 0 && args.format == OutputFormat::Text => {
-                            println!("fixed: removed {count} orphaned metadata file{}", plural_suffix(count));
+                            println!(
+                                "fixed: removed {count} orphaned metadata file{}",
+                                plural_suffix(count)
+                            );
                             println!();
                         }
                         Ok(_) => {}

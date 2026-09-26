@@ -13,8 +13,10 @@ pub struct MissingPathReport {
 
 fn help_for_missing_path(project: &LoadedProject, path: &Path) -> &'static str {
     let file_name = path.file_name().and_then(|name| name.to_str());
-    let is_package_path = matches!(file_name, Some("Packages" | "DevPackages" | "pesde_packages"))
-        || path.components().any(|c| c.as_os_str() == "pesde_packages");
+    let is_package_path = matches!(
+        file_name,
+        Some("Packages" | "DevPackages" | "pesde_packages")
+    ) || path.components().any(|c| c.as_os_str() == "pesde_packages");
 
     if is_package_path && project.root_dir().join("pesde.toml").is_file() {
         "run `pesde install` to create this path"
