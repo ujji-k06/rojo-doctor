@@ -10,7 +10,7 @@ Passing no `PATHS` checks the entire project from the current working directory.
 
 Stage 0 runs first. Stages 1-5 run concurrently on separate threads, and the summary prints in stage order once execution finishes.
 
-> Limits: `verify` is Rust-only (not in the Lune/pesde package). It is not read-only: it can install packages and regenerate `sourcemap.json`. `--fix` modifies source files in place.
+> Limits: `verify` is Rust-only (not in the Lune/pesde package). It is not read-only: it can install packages and regenerate `sourcemap.json`. The generated `sourcemap.json` lands in the project root and belongs in the project's `.gitignore`. `--fix` modifies source files in place.
 
 ## Stages
 

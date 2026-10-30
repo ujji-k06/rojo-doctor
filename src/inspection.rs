@@ -187,13 +187,11 @@ pub const DATA_MODEL_SERVICES: &[&str] = &[
 ];
 
 fn inferred_class<'a>(name: &'a str, parent_class: Option<&str>) -> Option<&'a str> {
-    if parent_class == Some("DataModel") && DATA_MODEL_SERVICES.contains(&name) {
-        Some(name)
-    } else if parent_class == Some("StarterPlayer")
-        && matches!(name, "StarterPlayerScripts" | "StarterCharacterScripts")
+    if (parent_class == Some("DataModel") && DATA_MODEL_SERVICES.contains(&name))
+        || (parent_class == Some("StarterPlayer")
+            && matches!(name, "StarterPlayerScripts" | "StarterCharacterScripts"))
+        || (parent_class == Some("Workspace") && name == "Terrain")
     {
-        Some(name)
-    } else if parent_class == Some("Workspace") && name == "Terrain" {
         Some(name)
     } else {
         None

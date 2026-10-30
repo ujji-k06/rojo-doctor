@@ -97,10 +97,8 @@ pub fn fix(project: &LoadedProject) -> Result<usize, CheckError> {
     for diag in diagnostics {
         if diag.code == "orphan-meta" {
             let path = project.root_dir().join(&diag.subject);
-            if path.is_file() {
-                if fs::remove_file(&path).is_ok() {
-                    fixed += 1;
-                }
+            if path.is_file() && fs::remove_file(&path).is_ok() {
+                fixed += 1;
             }
         }
     }
