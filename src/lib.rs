@@ -3,6 +3,7 @@ pub mod cli;
 pub mod diagnostic;
 pub mod inspection;
 pub mod project;
+pub mod verify;
 
 use std::process::ExitCode;
 
@@ -13,6 +14,7 @@ use serde::Serialize;
 pub fn run(cli: Cli) -> ExitCode {
     match cli.command {
         Command::Check(args) => run_check(args),
+        Command::Verify(args) => verify::run(args),
     }
 }
 

@@ -18,7 +18,7 @@ warning[missing-path]
 1 warning, 0 errors
 ```
 
-Available both as a standalone **Rust CLI binary** and a native **pesde / Lune package**.
+The Rust binary runs `check` and `verify`; the pesde / Lune package runs `check` only.
 
 ## Install
 
@@ -99,3 +99,20 @@ pesde run test
 ## Why this exists
 
 Rojo fails at serve/build time with a stack of path errors. `rojo-doctor` is the same structural pass, readable in a terminal, and scriptable via `--format json`.
+
+## Verify
+
+`rojo-doctor verify` runs package installs, structural checks, StyLua, Selene, luau-lsp, and Lune tests in parallel. It requires the Rust binary and may install dependencies or update sourcemap.json.
+
+```sh
+# Verify the whole project
+rojo-doctor verify
+
+# Check changed files against git HEAD
+rojo-doctor verify --diff
+
+# Apply formatting and structural fixes
+rojo-doctor verify --fix
+```
+
+See [docs/verify.md](docs/verify.md) for stages, flags, and exit codes.
