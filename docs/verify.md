@@ -63,6 +63,10 @@ The stage records which configuration was used.
 
 If an explicit path (`--definitions` or `$ROJO_DOCTOR_DEFINITIONS`) does not exist, verification aborts with exit code 2. If no definitions are found anywhere in the search order, verification proceeds and records a stage note.
 
+### Lune Requires
+
+`@lune/*` requires are resolved through the repository's own `.luaurc`, which aliases `lune` to `./types/lune` — vendored Lune 0.10.5 type stubs for `fs`, `process`, `serde` and `stdio`. Without it, `luau-lsp` reports `Unknown require` for every `@lune` import, and a machine that ran `lune setup` would typecheck differently from CI. Regenerate the stubs when the pinned Lune version changes.
+
 ## Exit Codes
 
 | Code | Status | Meaning |
