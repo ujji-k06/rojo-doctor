@@ -117,7 +117,7 @@ local function checkMissingPaths(project: LoadedProject, mappings: { MappedPath 
 
 			table.insert(diagnostics, {
 				code = "missing-path",
-				severity = "warning",
+				severity = "warning" :: Types.Severity,
 				subject = configured,
 				message = string.format(
 					"referenced by %s but does not exist, so Rojo cannot resolve this mapping",
@@ -138,7 +138,7 @@ local function checkFileWithChildren(_project: LoadedProject, mappings: { Mapped
 		if fs.isFile(mapping.resolved_path) and mapping.has_children then
 			table.insert(diagnostics, {
 				code = "file-with-children",
-				severity = "error",
+				severity = "error" :: Types.Severity,
 				subject = mapping.configured_path,
 				message = string.format(
 					"%s maps to a file but also lists child instances, which Rojo cannot merge",
@@ -158,7 +158,7 @@ local function checkMissingName(project: LoadedProject): { Diagnostic }
 		local fileName = project.path:match("[^/]+$") or "project"
 		table.insert(diagnostics, {
 			code = "missing-name",
-			severity = "warning",
+			severity = "warning" :: Types.Severity,
 			subject = fileName,
 			message = "project has no name, so Rojo will fall back to the file name",
 			help = "set the top-level `name` field",
@@ -197,7 +197,7 @@ local function checkMissingClass(project: LoadedProject): { Diagnostic }
 			local instancePathStr = table.concat(instanceSegments, ".")
 			table.insert(diagnostics, {
 				code = "missing-class",
-				severity = "error",
+				severity = "error" :: Types.Severity,
 				subject = instancePathStr,
 				message = "has neither $className nor $path, so Rojo cannot snapshot this instance",
 				help = "set `$className` or `$path`",
@@ -233,7 +233,7 @@ local function checkClassOnNonFolder(_project: LoadedProject, mappings: { Mapped
 			if isFile or (fs.isDir(mapping.resolved_path) and not isFolder) then
 				table.insert(diagnostics, {
 					code = "class-on-non-folder",
-					severity = "error",
+					severity = "error" :: Types.Severity,
 					subject = mapping.configured_path,
 					message = string.format(
 						"%s sets $className to `%s` but $path is not a Folder",
@@ -276,7 +276,7 @@ local function checkChildCollision(_project: LoadedProject, mappings: { MappedPa
 				if instanceName and childLookup[instanceName] then
 					table.insert(diagnostics, {
 						code = "child-collision",
-						severity = "error",
+						severity = "error" :: Types.Severity,
 						subject = mapping.configured_path,
 						message = string.format(
 							"%s lists child `%s` which $path already provides from the filesystem",
@@ -323,7 +323,7 @@ local function checkAmbiguousInit(project: LoadedProject, mappings: { MappedPath
 			end)
 			table.insert(diagnostics, {
 				code = "ambiguous-init",
-				severity = "warning",
+				severity = "warning" :: Types.Severity,
 				subject = relativeSubject(project, dir),
 				message = string.format(
 					"contains multiple init scripts (%s); Rojo will only use the highest-priority one",
@@ -387,7 +387,7 @@ local function checkOrphanMeta(project: LoadedProject, mappings: { MappedPath })
 			if not matched then
 				table.insert(diagnostics, {
 					code = "orphan-meta",
-					severity = "warning",
+					severity = "warning" :: Types.Severity,
 					subject = relativeSubject(project, Project.joinPaths(dir, metaFile)),
 					message = "metadata file has no matching instance",
 					help = string.format("add a sibling `%s` file or folder, or delete this .meta.json", stem),
@@ -416,7 +416,7 @@ local function checkScriptContext(project: LoadedProject, mappings: { MappedPath
 		if expected == "ServerOnly" and isClient then
 			table.insert(diagnostics, {
 				code = "script-context",
-				severity = "warning",
+				severity = "warning" :: Types.Severity,
 				subject = relativeSubject(project, filePath),
 				message = string.format("client script placed under `%s` will not execute on the client", instancePath),
 				help = "move this script to a client container (e.g. StarterPlayerScripts, StarterGui) or change to a server script",
@@ -424,7 +424,7 @@ local function checkScriptContext(project: LoadedProject, mappings: { MappedPath
 		elseif expected == "ClientOnly" and isServer then
 			table.insert(diagnostics, {
 				code = "script-context",
-				severity = "warning",
+				severity = "warning" :: Types.Severity,
 				subject = relativeSubject(project, filePath),
 				message = string.format("server script placed under `%s` will not execute on the client", instancePath),
 				help = "move this script to ServerScriptService or change to a client script",
@@ -450,13 +450,13 @@ local function checkScriptContext(project: LoadedProject, mappings: { MappedPath
 		local segs = mapping.instance_segments
 		local expected: ("ServerOnly" | "ClientOnly")? = nil
 		if segs[1] == "ServerScriptService" or segs[1] == "ServerStorage" then
-			expected = "ServerOnly"
+			expected = "ServerOnly" :: "ServerOnly"
 		elseif
 			segs[1] == "ReplicatedFirst"
 			or segs[1] == "StarterGui"
 			or (segs[1] == "StarterPlayer" and segs[2] == "StarterPlayerScripts")
 		then
-			expected = "ClientOnly"
+			expected = "ClientOnly" :: "ClientOnly"
 		end
 
 		if expected then

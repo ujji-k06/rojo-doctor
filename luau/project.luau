@@ -36,7 +36,7 @@ local ROJO_SUFFIXES = {
 }
 
 function Project.stripJsonc(input: string): string
-	local result = {}
+	local result: { string } = {}
 	local inString = false
 	local inLineComment = false
 	local inBlockComment = false

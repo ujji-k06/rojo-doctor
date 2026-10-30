@@ -22,11 +22,11 @@ FIXTURES=(
 echo "Verifying 100% text and exit code parity across ${#FIXTURES[@]} fixtures..."
 
 for fix in "${FIXTURES[@]}"; do
-  RUST_OUT=$(target/debug/rojo-doctor check "$fix" || true)
-  RUST_CODE=$?
+  RUST_CODE=0
+  RUST_OUT=$(target/debug/rojo-doctor check "$fix") || RUST_CODE=$?
 
-  LUNE_OUT=$(lune run bin/rojo-doctor.luau check "$fix" || true)
-  LUNE_CODE=$?
+  LUNE_CODE=0
+  LUNE_OUT=$(lune run bin/rojo-doctor.luau check "$fix") || LUNE_CODE=$?
 
   if [ "$RUST_CODE" != "$LUNE_CODE" ]; then
     echo "❌ Exit code mismatch on $fix: Rust=$RUST_CODE Lune=$LUNE_CODE"

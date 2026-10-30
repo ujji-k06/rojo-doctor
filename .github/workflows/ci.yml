@@ -48,3 +48,35 @@ jobs:
         run: |
           export PATH="$HOME/.lune-bin:$PATH"
           ./tests/parity.sh
+
+  verify-pipeline:
+    name: Verify Luau Pipeline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install Verification Tools (Lune, StyLua, Selene, Luau-LSP)
+        run: |
+          mkdir -p "$HOME/.tools-bin"
+          curl -fsSL https://github.com/lune-org/lune/releases/download/v0.10.5/lune-0.10.5-linux-x86_64.zip -o lune.zip
+          unzip -q lune.zip -d "$HOME/.tools-bin"
+          chmod +x "$HOME/.tools-bin/lune"
+
+          curl -fsSL https://github.com/JohnnyMorganz/StyLua/releases/download/v2.6.0/stylua-linux-x86_64.zip -o stylua.zip
+          unzip -q stylua.zip -d "$HOME/.tools-bin"
+          chmod +x "$HOME/.tools-bin/stylua"
+
+          curl -fsSL https://github.com/Kampfkarren/selene/releases/download/0.32.0/selene-0.32.0-linux.zip -o selene.zip
+          unzip -q selene.zip -d "$HOME/.tools-bin"
+          chmod +x "$HOME/.tools-bin/selene"
+
+          curl -fsSL https://github.com/JohnnyMorganz/luau-lsp/releases/download/1.70.1/luau-lsp-linux-x86_64.zip -o luau-lsp.zip
+          unzip -q luau-lsp.zip -d "$HOME/.tools-bin"
+          chmod +x "$HOME/.tools-bin/luau-lsp"
+
+          echo "$HOME/.tools-bin" >> "$GITHUB_PATH"
+      - name: Run rojo-doctor verify
+        run: |
+          export PATH="$HOME/.tools-bin:$PATH"
+          cargo run --quiet -- verify --no-install --no-project
+
