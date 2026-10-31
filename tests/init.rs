@@ -13,18 +13,19 @@ fn create_temp_dir(prefix: &str) -> PathBuf {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_nanos();
-    let dir = std::env::temp_dir().join(format!("rojo_doctor_init_{prefix}_{now}"));
+    let base = if Path::new("/tmp").is_dir() {
+        PathBuf::from("/tmp")
+    } else {
+        std::env::temp_dir()
+    };
+    let dir = base.join(format!("rojo_doctor_init_{prefix}_{now}"));
     fs::create_dir_all(&dir).unwrap();
     dir
 }
 
 fn create_dummy_definitions() -> PathBuf {
     let defs_path = create_temp_dir("dummy_defs").join("globalTypes.d.luau");
-    fs::write(
-        &defs_path,
-        "-- dummy global definitions for test\ndeclare class Instance\nend\n",
-    )
-    .unwrap();
+    fs::write(&defs_path, "-- dummy global definitions for test\n").unwrap();
     defs_path
 }
 
@@ -213,9 +214,9 @@ fn force_overwrites() {
     assert!(fs::read_to_string(&wf_file)
         .unwrap()
         .contains("name: verify"));
-    assert!(fs::read_to_string(&hook_file)
-        .unwrap()
-        .contains("rojo-doctor verify --diff --no-install"));
+    let hook_content = fs::read_to_string(&hook_file).unwrap();
+    assert!(hook_content.contains("git rev-parse --verify HEAD"));
+    assert!(hook_content.contains("rojo-doctor verify $DIFF_FLAG --no-install"));
 
     let _ = fs::remove_dir_all(&dir);
 }
@@ -470,14 +471,6 @@ fn hook_runs_successfully_on_unborn_branch() {
     init_git_repo(&dir);
     let defs = create_dummy_definitions();
 
-    // Add a valid luau file and rojo project so verify can pass
-    fs::write(dir.join("test.luau"), "return {}\n").unwrap();
-    fs::write(
-        dir.join("default.project.json"),
-        r#"{"name": "Game", "tree": {"$className": "DataModel"}}"#,
-    )
-    .unwrap();
-
     let init_out = Command::new(env!("CARGO_BIN_EXE_rojo-doctor"))
         .args(["init", "--definitions-from"])
         .arg(&defs)
@@ -489,27 +482,67 @@ fn hook_runs_successfully_on_unborn_branch() {
     let hook_path = dir.join(".githooks").join("pre-commit");
     assert!(hook_path.exists());
 
-    // Prepend the target/debug directory to PATH so the hook can execute rojo-doctor
-    let bin_path = PathBuf::from(env!("CARGO_BIN_EXE_rojo-doctor"));
-    let bin_dir = bin_path.parent().unwrap();
+    // Create a hermetic bin directory containing a stub rojo-doctor
+    let stub_bin_dir = create_temp_dir("stub_bin");
+    let stub_rojo_doctor = stub_bin_dir.join("rojo-doctor");
+    let log_file = stub_bin_dir.join("rojo-doctor.log");
+
+    let stub_script = format!(
+        "#!/bin/sh\necho \"$@\" >> \"{}\"\nexit 0\n",
+        log_file.display()
+    );
+    fs::write(&stub_rojo_doctor, stub_script).unwrap();
+
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(&stub_rojo_doctor, fs::Permissions::from_mode(0o755)).unwrap();
+    }
+
+    // Prepend stub_bin_dir to PATH
     let current_path = std::env::var("PATH").unwrap_or_default();
-    let new_path = format!("{}:{}", bin_dir.display(), current_path);
+    let new_path = format!("{}:{}", stub_bin_dir.display(), current_path);
 
-    let hook_out = Command::new(&hook_path)
+    // Stage a file and run git commit in the fresh repo (unborn branch)
+    fs::write(dir.join("file.txt"), "hello\n").unwrap();
+    let add_out = Command::new("git")
+        .args(["add", "file.txt"])
         .current_dir(&dir)
-        .env("PATH", new_path)
         .output()
-        .expect("execute pre-commit hook");
+        .expect("git add");
+    assert!(add_out.status.success());
 
-    assert_eq!(
-        hook_out.status.code(),
-        Some(0),
-        "hook should pass on unborn branch: stdout: {}, stderr: {}",
-        String::from_utf8_lossy(&hook_out.stdout),
-        String::from_utf8_lossy(&hook_out.stderr)
+    let commit_out = Command::new("git")
+        .args(["commit", "-m", "initial commit"])
+        .current_dir(&dir)
+        .env("PATH", &new_path)
+        .output()
+        .expect("git commit");
+
+    assert!(
+        commit_out.status.success(),
+        "git commit should succeed via hook: stdout: {}, stderr: {}",
+        String::from_utf8_lossy(&commit_out.stdout),
+        String::from_utf8_lossy(&commit_out.stderr)
+    );
+
+    // Verify stub invocation
+    assert!(
+        log_file.exists(),
+        "stub rojo-doctor should have been executed"
+    );
+    let logged_args = fs::read_to_string(&log_file).unwrap();
+    assert!(
+        logged_args.contains("verify"),
+        "logged args should contain verify: {logged_args}"
+    );
+    assert!(
+        !logged_args.contains("--diff"),
+        "unborn branch hook invocation must NOT pass --diff: {logged_args}"
     );
 
     let _ = fs::remove_dir_all(&dir);
+    let _ = fs::remove_dir_all(&stub_bin_dir);
 }
 
 #[test]
