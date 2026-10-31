@@ -39,6 +39,14 @@ lune run bin/rojo-doctor.luau check
 cargo install rojo-doctor --git https://github.com/ujji-k06/rojo-doctor --locked
 ```
 
+### Project Initialization
+
+```sh
+rojo-doctor init
+```
+
+Provisions engine type definitions, a pre-commit hook, and CI verification workflows. See [docs/init.md](docs/init.md) for details.
+
 ## Usage
 
 ```text

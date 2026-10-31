@@ -1,5 +1,5 @@
 name = "ujji/rojo_doctor"
-version = "0.4.0"
+version = "0.4.1"
 description = "Actionable structural diagnostics for Rojo projects"
 license = "MIT"
 authors = ["ujji"]

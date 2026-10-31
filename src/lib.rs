@@ -1,6 +1,7 @@
 pub mod checks;
 pub mod cli;
 pub mod diagnostic;
+pub mod init;
 pub mod inspection;
 pub mod project;
 pub mod verify;
@@ -15,6 +16,7 @@ pub fn run(cli: Cli) -> ExitCode {
     match cli.command {
         Command::Check(args) => run_check(args),
         Command::Verify(args) => verify::run(args),
+        Command::Init(args) => init::run(args),
     }
 }
 

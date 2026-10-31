@@ -20,6 +20,9 @@ pub enum Command {
 
     /// Verification gate for Roblox/Luau projects.
     Verify(VerifyArgs),
+
+    /// Initialize a project with engine types, git hooks, and CI workflows.
+    Init(InitArgs),
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, ValueEnum)]
@@ -101,6 +104,33 @@ pub struct VerifyArgs {
     /// Show detailed diagnostic output.
     #[arg(short, long)]
     pub verbose: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct InitArgs {
+    /// Project root directory to initialize (default: current directory).
+    #[arg(value_name = "PATH", default_value = ".")]
+    pub path: PathBuf,
+
+    /// Overwrite existing files.
+    #[arg(long)]
+    pub force: bool,
+
+    /// Skip GitHub Actions CI workflow generation.
+    #[arg(long)]
+    pub no_ci: bool,
+
+    /// Skip pre-commit hook generation and git hooks configuration.
+    #[arg(long)]
+    pub no_hook: bool,
+
+    /// Skip Luau engine type definitions.
+    #[arg(long)]
+    pub no_types: bool,
+
+    /// Copy definitions from a local file instead of downloading.
+    #[arg(long, value_name = "PATH")]
+    pub definitions_from: Option<PathBuf>,
 }
 
 #[cfg(test)]
@@ -212,6 +242,53 @@ mod tests {
                 assert!(args.verbose);
             }
             _ => panic!("expected verify command"),
+        }
+    }
+
+    #[test]
+    fn parses_init_defaults() {
+        let cli = Cli::try_parse_from(["rojo-doctor", "init"]).expect("should parse");
+        match cli.command {
+            Command::Init(args) => {
+                assert_eq!(args.path, PathBuf::from("."));
+                assert!(!args.force);
+                assert!(!args.no_ci);
+                assert!(!args.no_hook);
+                assert!(!args.no_types);
+                assert_eq!(args.definitions_from, None);
+            }
+            _ => panic!("expected init command"),
+        }
+    }
+
+    #[test]
+    fn parses_init_all_flags() {
+        let cli = Cli::try_parse_from([
+            "rojo-doctor",
+            "init",
+            "my/project",
+            "--force",
+            "--no-ci",
+            "--no-hook",
+            "--no-types",
+            "--definitions-from",
+            "custom/globalTypes.d.luau",
+        ])
+        .expect("should parse");
+
+        match cli.command {
+            Command::Init(args) => {
+                assert_eq!(args.path, PathBuf::from("my/project"));
+                assert!(args.force);
+                assert!(args.no_ci);
+                assert!(args.no_hook);
+                assert!(args.no_types);
+                assert_eq!(
+                    args.definitions_from,
+                    Some(PathBuf::from("custom/globalTypes.d.luau"))
+                );
+            }
+            _ => panic!("expected init command"),
         }
     }
 }
